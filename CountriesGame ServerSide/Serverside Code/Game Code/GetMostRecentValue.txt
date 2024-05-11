@@ -1,0 +1,13 @@
+#MostRecentValueQuery
+SELECT ?value ?valueDate WHERE {
+  wd:countryID p:propertyID ?value_statement.
+
+  ?value_statement ps:propertyID ?value;
+                        pq:P585 ?valueDate.
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}
+
+order by desc(?valueDate)
+
+limit 1

@@ -1,0 +1,8 @@
+#NestedPropertyValueQuery
+SELECT ?value WHERE {
+  wd:countryID wdt:propertyID
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}
+
+limit 1

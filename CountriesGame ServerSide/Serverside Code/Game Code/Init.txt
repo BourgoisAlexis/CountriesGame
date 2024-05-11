@@ -1,0 +1,10 @@
+#InitQuery
+SELECT ?value ?valueLabel WHERE {
+  ?value wdt:P31 wd:Q6256;
+    wdt:P463 ?memberOf.
+
+  FILTER(?memberOf = wd:Q1065)
+
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}
+ORDER BY (?valueLabel)
