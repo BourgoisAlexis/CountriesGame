@@ -24,16 +24,15 @@ public class MessagePanel : InteractableItem {
         _initMax = _rectTransform.anchorMax;
 
         _image = GetComponent<Image>();
-        _basicColor = GameManager.instance._colorPalette[6];
-        _translucentColor = _basicColor;
-        _translucentColor.a = 0.7f;
+        _basicColor = GameManager.instance._colorPalette[5];
+        _translucentColor = GameManager.instance._colorPalette[6];
 
         _image.color = _translucentColor;
 
         _currentLink = string.Empty;
     }
 
-    public void Show(string message) {
+    public async Task Show(string message) {
         _currentLink = string.Empty;
 
         if (message.Contains("<link>")) {
@@ -46,29 +45,34 @@ public class MessagePanel : InteractableItem {
         _tmproMessage.text = message;
         _rectTransform.DOAnchorMin(_initMin, AppConst.animDuration).SetEase(AppConst.animEase);
         _rectTransform.DOAnchorMax(_initMax, AppConst.animDuration).SetEase(AppConst.animEase);
+        await GameManager.instance.TaskWithDelay(AppConst.animDuration);
     }
 
-    public async void Hide() {
+    public async Task Hide() {
         while (_hovered)
             await Task.Yield();
 
-        _rectTransform.DOAnchorMin(_initMin + Vector2.up * 1, AppConst.animDuration).SetEase(AppConst.animEase);
-        _rectTransform.DOAnchorMax(_initMax + Vector2.up * 1, AppConst.animDuration).SetEase(AppConst.animEase);
+        _rectTransform.DOAnchorMin(_initMin + Vector2.down * 1, AppConst.animDuration).SetEase(AppConst.animEase);
+        _rectTransform.DOAnchorMax(_initMax + Vector2.down * 1, AppConst.animDuration).SetEase(AppConst.animEase);
+        await GameManager.instance.TaskWithDelay(AppConst.animDuration);
     }
 
-    public async void ShowTemporary(string message) {
-        Show(message);
+    public async Task ShowTemporary(string message) {
+        await Show(message);
         await GameManager.instance.TaskWithDelay(1);
-        Hide();
+        await Hide();
     }
 
     public async void ShowError(string message) {
-        Show(message);
+        await Show(message);
         await GameManager.instance.TaskWithDelay(6);
-        Hide();
+        await Hide();
     }
 
     public override void PointerEnter() {
+        if (string.IsNullOrEmpty(_currentLink))
+            return;
+
         _image.DOColor(_basicColor, AppConst.animDuration).SetEase(AppConst.animEase);
         _hovered = true;
     }

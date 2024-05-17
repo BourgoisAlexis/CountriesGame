@@ -15,7 +15,6 @@ public class CustomButton : InteractableItem {
 
 
     private void Awake() {
-        Tag = AppConst.tagButton;
         _image = GetComponent<Image>();
         _tmproLabel = GetComponentInChildren<TextMeshProUGUI>();
         _interactable = true;

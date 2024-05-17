@@ -51,8 +51,10 @@ public class GameManager : MonoBehaviour {
 
     private void Start() {
         inputManager.Setup(FindObjectsOfType<GraphicRaycaster>(), FindObjectOfType<EventSystem>());
+        inputManager.Enable(InteractableTags.LobbyButton);
         viewManager.Setup(0);
         lobbyManager.Setup();
+        boardManager.Setup();
         messagePanel.Hide();
 
         _setuped = true;
@@ -62,7 +64,7 @@ public class GameManager : MonoBehaviour {
         if (!_setuped)
             return;
 
-        connectionManager.ProcessMessages();
+        //connectionManager.ProcessMessages();
         inputManager.Update();
     }
 
@@ -72,7 +74,7 @@ public class GameManager : MonoBehaviour {
         await boardManager.DropZone.Clear();
 
         viewManager.ShowView(0);
-        inputManager.Enable();
+        inputManager.Enable(InteractableTags.LobbyButton);
         playerList.LobbyState();
     }
 

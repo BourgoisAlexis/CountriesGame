@@ -2,12 +2,15 @@ using UnityEngine;
 using System.Collections.Generic;
 using PlayerIOClient;
 using System;
+using System.Threading.Tasks;
+using System.Linq;
 
 public class ConnectionManager {
     private Connection _connection;
     private Client _client;
     private int _id;
     private bool _isMyTurn;
+    private bool _processing;
 
     public bool MyTurn => _isMyTurn;
 
@@ -65,6 +68,7 @@ public class ConnectionManager {
             (PlayerIOError error) => {
                 Utils.Log(this, "CreateRoom", $"CreateRoom error {error}");
                 GameManager.instance.messagePanel.ShowError($"An error has occured : {error.Message}");
+                GameManager.instance.loading.Load(false);
             }
         );
     }
@@ -77,8 +81,8 @@ public class ConnectionManager {
 
         _client.Multiplayer.JoinRoom(
             roomId,                             //Room id. If set to null a random roomid is used
-            new Dictionary<string, string> { 
-                { "gameVersion", $"{Application.version}" } 
+            new Dictionary<string, string> {
+                { "gameVersion", $"{Application.version}" }
             },
             (Connection connection) => {
                 _connection = connection;
@@ -106,6 +110,11 @@ public class ConnectionManager {
     private void ReceiveMessage(object sender, Message m) {
         Utils.Log(this, "ReceiveMessage", $"{m.Type}");
         _messages.Add(m);
+
+        if (_processing)
+            return;
+
+        ProcessMessages();
     }
 
     public void SendMessage(string type, params object[] parameters) {
@@ -116,8 +125,12 @@ public class ConnectionManager {
         _connection.Send(m);
     }
 
-    public void ProcessMessages() {
-        foreach (Message m in _messages) {
+    public async void ProcessMessages() {
+        _processing = true;
+
+        while (_messages.Count > 0) {
+            Message m = _messages.First();
+
             switch (m.Type) {
                 case AppConst.serverMessageError:
                     string error = m.GetString(0);
@@ -131,6 +144,7 @@ public class ConnectionManager {
                 case AppConst.serverMessageDrawCard:
                     DataCard d = new DataCard(m.GetString(0), m.GetString(1));
                     GameManager.instance.boardManager.HandController.DrawCard(d);
+                    await GameManager.instance.TaskWithDelay(AppConst.animDuration);
                     break;
 
                 case AppConst.serverMessagePlayCard:
@@ -140,7 +154,7 @@ public class ConnectionManager {
 
                 case AppConst.serverMessageStartGame:
                     GameManager.instance.viewManager.ShowView(1);
-                    GameManager.instance.inputManager.Disable();
+                    GameManager.instance.inputManager.Enable(InteractableTags.RulesButton);
                     GameManager.instance.gameEnded = false;
                     break;
 
@@ -171,11 +185,12 @@ public class ConnectionManager {
                     _isMyTurn = m.GetInt(0) == _id;
 
                     if (_isMyTurn)
-                        GameManager.instance.inputManager.Enable();
+                        GameManager.instance.inputManager.EnableAll();
                     else
-                        GameManager.instance.inputManager.Disable();
+                        GameManager.instance.inputManager.Enable(InteractableTags.RulesButton);
 
-                    GameManager.instance.playerList.HighlightCurrentPlayer(m.GetInt(0));
+                    GameManager.instance.playerList.HighlightPlayers(m.GetInt(0), m.GetInt(1));
+                    GameManager.instance.playerList.UpdateCardCounts(m.GetString(2));
                     break;
 
                 case AppConst.serverMessageProcessQuery:
@@ -183,22 +198,33 @@ public class ConnectionManager {
                     break;
 
                 case AppConst.serverMessageContestResult:
-                    Utils.Log(this, "ProcessQuery", m.GetString(0));
-                    GameManager.instance.boardManager.ShowResult(m.GetString(0));
                     GameManager.instance.loading.Load(false);
 
+                    if (!GameManager.instance.gameEnded) {
+                        await GameManager.instance.messagePanel.Show("Contest !");
+                        await GameManager.instance.TaskWithDelay(0.5f);
+                    }
+
+                    await GameManager.instance.boardManager.ShowResult(m.GetString(0));
+                    await GameManager.instance.TaskWithDelay(0.5f);
+
+                    if (!GameManager.instance.gameEnded) {
+                        await GameManager.instance.messagePanel.Hide();
+                        await GameManager.instance.TaskWithDelay(0.5f);
+                    }
+
                     if (m.GetInt(1) == _id)
-                        GameManager.instance.inputManager.Disable(true);
+                        GameManager.instance.inputManager.Enable(InteractableTags.ActionButton, InteractableTags.RulesButton);
                     break;
 
                 case AppConst.serverMessageNextRound:
-                    GameManager.instance.messagePanel.ShowTemporary("next round");
+                    await GameManager.instance.messagePanel.ShowTemporary("New round !");
                     GameManager.instance.boardManager.ClearBoard();
                     break;
 
                 case AppConst.serverMessageGameEnded:
                     bool IWon = m.GetInt(0) == _id;
-                    GameManager.instance.messagePanel.Show(IWon ? "You win !" : $"{GameManager.instance.playerList.GetPlayerName(m.GetInt(0))} win !");
+                    await GameManager.instance.messagePanel.Show(IWon ? "You win !" : $"{GameManager.instance.playerList.GetPlayerName(m.GetInt(0))} win !");
                     GameManager.instance.gameEnded = true;
                     break;
 
@@ -206,9 +232,11 @@ public class ConnectionManager {
                     GameManager.instance.ReturnToLobby();
                     break;
             }
+
+            _messages.Remove(m);
         }
 
-        _messages.Clear();
+        _processing = false;
     }
 
     private bool CheckClient() {

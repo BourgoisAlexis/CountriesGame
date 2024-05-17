@@ -12,7 +12,7 @@ public class ViewManager : MonoBehaviour, Imanager {
 
 
     public async void Setup(params object[] parameters) {
-        GameManager.instance.inputManager.Disable();
+        GameManager.instance.inputManager.Disable(true);
 
         foreach (GameObject view in _views)
             view.SetActive(false);
@@ -23,7 +23,7 @@ public class ViewManager : MonoBehaviour, Imanager {
         _splashScreen.gameObject.SetActive(false);
 
         ShowView((int)parameters[0]);
-        GameManager.instance.inputManager.Enable();
+        GameManager.instance.inputManager.Disable(false);
     }
 
     public async void ShowView(int index) {

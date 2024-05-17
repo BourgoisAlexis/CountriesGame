@@ -1,5 +1,6 @@
 using DG.Tweening;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,7 +25,7 @@ public class DropZone : CardGrouper {
 
         _hovered = false;
 
-        Tag = AppConst.tagDropZone;
+        interactableTag = InteractableTags.DropZone;
     }
 
     protected override void SetupCreatedCard(CardController controller, Card card) {
@@ -127,7 +128,7 @@ public class DropZone : CardGrouper {
         PlaceCards();
     }
 
-    public async void Reveal(List<DataContestResult> results) {
+    public async Task Reveal(List<DataContestResult> results) {
         for (int i = 0; i < results.Count; i++) {
             _cardControllers[i].Card.Reveal(results[i]);
             await GameManager.instance.TaskWithDelay(_taskDelay);

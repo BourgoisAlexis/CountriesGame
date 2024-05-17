@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -7,7 +8,7 @@ public class InputManager : Imanager {
     private List<InteractableItem> _hoveredItems = new List<InteractableItem>();
     private CardController _draggedCard;
     private bool _enabled;
-    private bool _buttonsAllowed;
+    private InteractableTags[] _allowedTags = new InteractableTags[] { };
 
     private GraphicRaycaster[] _raycasters;
     private PointerEventData _pointerEventData;
@@ -21,25 +22,26 @@ public class InputManager : Imanager {
     }
 
     public void Update() {
+        if (!_enabled)
+            return;
+
         DetectInteractables();
 
-        if (!_enabled && !_buttonsAllowed)
+        if (_allowedTags.Length == 0)
             return;
 
         if (Input.GetMouseButtonDown(0))
             foreach (InteractableItem item in _hoveredItems) {
-                if (!_enabled && _buttonsAllowed)
-                    if (item.Tag != AppConst.tagButton)
-                        continue;
+                if (!IsAllowedTag(item.interactableTag))
+                    continue;
 
                 item.PointerDown();
             }
 
         if (Input.GetMouseButtonUp(0)) {
             foreach (InteractableItem item in _hoveredItems) {
-                if (!_enabled && _buttonsAllowed)
-                    if (item.Tag != AppConst.tagButton)
-                        continue;
+                if (!IsAllowedTag(item.interactableTag))
+                    continue;
 
                 if (item != _draggedCard)
                     item.PointerUp();
@@ -48,9 +50,6 @@ public class InputManager : Imanager {
             if (_draggedCard)
                 DropCard();
         }
-
-        if (!_enabled)
-            return;
 
         if (_draggedCard) {
             _draggedCard.transform.position = Input.mousePosition;
@@ -77,7 +76,7 @@ public class InputManager : Imanager {
                 if (item == null)
                     continue;
 
-                if (currentHovered.Find(x => !string.IsNullOrEmpty(x.Tag) && x.Tag == item.Tag))
+                if (currentHovered.Find(x => x.interactableTag == item.interactableTag))
                     continue;
 
                 if (!_hoveredItems.Contains(item)) {
@@ -123,17 +122,35 @@ public class InputManager : Imanager {
         return zone;
     }
 
-    public void Disable(bool buttonsAllowed = false) {
-        GameManager.instance.boardManager.SetActionButton(buttonsAllowed);
+    public void Enable(params InteractableTags[] allowedTags) {
+        StringBuilder b = new StringBuilder();
+        foreach (var tag in allowedTags) {
+            b.AppendLine(tag.ToString());
+        }
+        Debug.Log(b.ToString());
 
-        _buttonsAllowed = buttonsAllowed;
-        _enabled = false;
+        _allowedTags = allowedTags;
+        GameManager.instance.boardManager.SetActionButton(IsAllowedTag(InteractableTags.ActionButton));
     }
 
-    public void Enable() {
-        GameManager.instance.boardManager.SetActionButton(true);
+    public void EnableAll() {
+        Enable(InteractableTags.Default,
+            InteractableTags.RulesButton,
+            InteractableTags.DropZone,
+            InteractableTags.ActionButton,
+            InteractableTags.CardController
+            );
+    }
 
-        _buttonsAllowed = true;
-        _enabled = true;
+    private bool IsAllowedTag(InteractableTags tag) {
+        foreach (InteractableTags t in _allowedTags)
+            if (t.ToString() == tag.ToString())
+                return true;
+
+        return false;
+    }
+
+    public void Disable(bool disable) {
+        _enabled = !disable;
     }
 }

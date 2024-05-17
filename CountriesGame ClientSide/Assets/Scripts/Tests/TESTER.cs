@@ -20,7 +20,7 @@ public class TESTER : MonoBehaviour {
         obj.transform.SetParent(transform);
         Image i = obj.AddComponent<Image>();
         CustomButton b = obj.AddComponent<CustomButton>();
-        b.Tag = AppConst.tagButton;
+        b.interactableTag = InteractableTags.Default;
         b.Setup(action, Color.black);
         _buttons.Add(b);
 

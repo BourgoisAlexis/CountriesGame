@@ -41,7 +41,7 @@ public class CardController : InteractableItem {
         _dragged = false;
         _hovered = false;
 
-        Tag = AppConst.tagCardController;
+        interactableTag = InteractableTags.CardController;
         SetLabel("");
         _tmproLabel.color = _transparentColor;
     }

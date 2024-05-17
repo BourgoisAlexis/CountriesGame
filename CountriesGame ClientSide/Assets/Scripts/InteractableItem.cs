@@ -1,7 +1,7 @@
 using UnityEngine;
 
 public class InteractableItem : MonoBehaviour {
-    [HideInInspector] public string Tag = "";
+    public InteractableTags interactableTag;
 
     protected bool _interactable;
     protected bool _hovered;

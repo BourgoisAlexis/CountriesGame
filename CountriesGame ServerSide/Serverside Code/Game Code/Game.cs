@@ -50,6 +50,7 @@ namespace CountriesGame {
         private List<string> _cardsOnBoard;
 
         private AppConst _appConst = new AppConst();
+        private Random _random = new Random();
         #endregion
 
 
@@ -168,7 +169,7 @@ namespace CountriesGame {
                 case "playermessage_clearboard":
                     _clearedBoards++;
                     if (_clearedBoards == Players.Count())
-                        Broadcast(_appConst.serverMessageCurrentPlayer, GetPlayerAtIndex(_currentPlayerIndex).Id);
+                        BroadcastCurrentPlayer();
                     break;
 
                 case "playermessage_returntolobby":
@@ -201,6 +202,14 @@ namespace CountriesGame {
             }
             if (index == _themeQueryIndex) {
                 Broadcast(_appConst.serverMessageSelectTheme, content.Replace("@en", ""));
+
+                int n = _random.Next(0, _availableCards.Count);
+                string id = _availableCards[n];
+                _availableCards.RemoveAt(n);
+                _cardsOnBoard.Add(id);
+
+                Broadcast(_appConst.serverMessagePlayCard, 0, id, _countryIDs[id]);
+
                 return;
             }
             if (_contestQueriesResp.ContainsKey(index)) {
@@ -212,14 +221,12 @@ namespace CountriesGame {
         private void InitGame(string content) {
             InitCountryDictionnary(content);
 
-            Random r = new Random();
-
             foreach (Player p in Players)
                 for (int i = 0; i < _initDraw; i++)
-                    DrawCard(p, r);
+                    DrawCard(p);
 
             _currentTheme = SelectTheme();
-            _currentPlayerIndex = r.Next(0, PlayerCount);
+            _currentPlayerIndex = _random.Next(0, PlayerCount);
             _themeQueryIndex = _currentQueryIndex;
             SendQuery("GetPropertyLabel", _currentTheme);
             NextPlayer();
@@ -249,21 +256,33 @@ namespace CountriesGame {
         }
 
         private string SelectTheme() {
-            Random r = new Random();
-            int result = r.Next(0, _appConst.themes.Count);
+            int result = _random.Next(0, _appConst.themes.Count);
             return _appConst.themes[result].id;
+        }
+
+        private void BroadcastCurrentPlayer() {
+            StringBuilder b = new StringBuilder();
+            foreach (Player p in Players) {
+                b.Append(p.Id);
+                b.Append('=');
+                b.Append(p.cardIDS.Count);
+                if (p != Players.Last())
+                    b.Append(';');
+            }
+
+            Broadcast(_appConst.serverMessageCurrentPlayer, GetPlayerAtIndex(_currentPlayerIndex).Id, GetPreviousPlayer().Id, b.ToString());
         }
 
         private void NextPlayer() {
             _currentPlayerIndex++;
             if (_currentPlayerIndex > Players.Count() - 1)
                 _currentPlayerIndex = 0;
-            Broadcast(_appConst.serverMessageCurrentPlayer, GetPlayerAtIndex(_currentPlayerIndex).Id);
+            BroadcastCurrentPlayer();
         }
 
-        private void DrawCard(Player player, Random r, int amount = 1) {
+        private void DrawCard(Player player, int amount = 1) {
             for (int i = 0; i < amount; i++) {
-                int n = r.Next(0, _availableCards.Count);
+                int n = _random.Next(0, _availableCards.Count);
                 string id = _availableCards[n];
                 player.Send(_appConst.serverMessageDrawCard, id, _countryIDs[id]);
                 player.cardIDS.Add(id);
@@ -351,9 +370,9 @@ namespace CountriesGame {
                 return;
 
             if (results.Find(x => x.isValid == false) != null)
-                DrawCard(GetPreviousPlayer(), new Random(), 2);
+                DrawCard(GetPreviousPlayer(), 2);
             else
-                DrawCard(GetPlayerAtIndex(_currentPlayerIndex), new Random(), 2);
+                DrawCard(GetPlayerAtIndex(_currentPlayerIndex), 2);
         }
 
         private Player GetNextPlayer() {

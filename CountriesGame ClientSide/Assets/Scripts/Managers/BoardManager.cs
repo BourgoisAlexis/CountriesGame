@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
-public class BoardManager : MonoBehaviour {
+public class BoardManager : MonoBehaviour, Imanager {
     [SerializeField] private TextMeshProUGUI _tmproTheme;
     [SerializeField] private DropZone _dropZone;
     [SerializeField] private HandController _handController;
     [SerializeField] private CustomButton _actionButton;
     [SerializeField] private Transform _outOfBoundsPos;
+    [SerializeField] private CustomButton _rulesButton;
+    [SerializeField] private GameObject _rulesPanel;
 
     private Color _enabled => GameManager.instance._colorPalette[1];
     private Color _disabled => GameManager.instance._colorPalette[5];
@@ -18,6 +21,11 @@ public class BoardManager : MonoBehaviour {
     public HandController HandController => _handController;
     public Vector2 OutOfBoundsPos => _outOfBoundsPos.position;
 
+
+    public void Setup(params object[] parameters) {
+        _rulesButton.Setup(ShowRules, GameManager.instance._colorPalette[2]);
+        _rulesPanel.SetActive(false);
+    }
 
     public void SetTheme(string theme) {
         _tmproTheme.text = theme;
@@ -29,7 +37,7 @@ public class BoardManager : MonoBehaviour {
         _actionButton.SetColor(_actionButtonColor);
     }
 
-    public void ShowResult(string result) {
+    public async Task ShowResult(string result) {
         List<DataContestResult> results = new List<DataContestResult>();
         string[] res = result.Split(";");
 
@@ -38,7 +46,7 @@ public class BoardManager : MonoBehaviour {
             results.Add(new DataContestResult(bool.Parse(ss[0].ToLower()), ss[1]));
         }
 
-        _dropZone.Reveal(results);
+        await _dropZone.Reveal(results);
 
         if (GameManager.instance.gameEnded) {
             Action onClick = () => GameManager.instance.connectionManager.SendMessage(AppConst.playerMessageReturnToLobby);
@@ -51,18 +59,23 @@ public class BoardManager : MonoBehaviour {
 
     public void Contest() {
         GameManager.instance.loading.Load(true);
-        GameManager.instance.inputManager.Disable();
+        GameManager.instance.inputManager.Enable(InteractableTags.RulesButton);
         GameManager.instance.connectionManager.SendMessage(AppConst.playerMessageContest);
     }
 
     public void NextRound() {
-        GameManager.instance.loading.Load(true);
-        GameManager.instance.inputManager.Disable();
+        GameManager.instance.inputManager.Enable(InteractableTags.RulesButton);
         GameManager.instance.connectionManager.SendMessage(AppConst.playerMessageNextRound);
     }
 
     public async void ClearBoard() {
         await _dropZone.Clear();
         GameManager.instance.connectionManager.SendMessage(AppConst.playerMessageClearBoard);
+    }
+
+    public void ShowRules() {
+        _rulesPanel.SetActive(true);
+        _rulesPanel.GetComponent<RulesPanel>().Setup();
+        GameManager.instance.inputManager.Enable(InteractableTags.RulesButton);
     }
 }

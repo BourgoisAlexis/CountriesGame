@@ -22,7 +22,7 @@ public class PropertyQuery {
 
 public class AppConst {
     public string gameVersionKey = "gameVersion";
-    public string gameVersion = "1.0";
+    public string gameVersion = "1.1";
 
     public string serverMessageError = "servermessage_error";
     public string serverMessageUserJoin = "servermessage_userjoin";

@@ -1,5 +1,15 @@
 using DG.Tweening;
 
+public enum InteractableTags {
+    Default,
+
+    CardController,
+    LobbyButton,
+    RulesButton,
+    ActionButton,
+    DropZone
+}
+
 public static class AppConst {
     public const int sortBase = 1;
     public const int sortHover = 99;
@@ -9,11 +19,6 @@ public static class AppConst {
     public const Ease animEase = Ease.InOutSine;
 
     public const string defaultRoomID = "defaultRoom";
-
-    //Interactable Tags
-    public const string tagCardController = "cardcontroller";
-    public const string tagButton = "button";
-    public const string tagDropZone = "dropzone";
 
     //Messages Sent
     public const string playerMessagePlayCard = "playermessage_playcard";

@@ -22,7 +22,7 @@ public class TransitionPanel : MonoBehaviour {
 
     public async Task In() {
         foreach (KeyValuePair<Transform, Vector2> pair in _positions) {
-            pair.Key.DOLocalMove(pair.Value, _duration).SetEase(AppConst.animEase);
+            pair.Key.DOLocalMove(pair.Value, _duration).SetEase(Ease.InOutExpo);
             await GameManager.instance.TaskWithDelay(0.01f);
         }
 
@@ -42,7 +42,7 @@ public class TransitionPanel : MonoBehaviour {
 
             Vector2 r = new Vector2(x, y);
             await GameManager.instance.TaskWithDelay(0.01f);
-            pair.Key.DOLocalMove(pair.Value + r, _duration).SetEase(AppConst.animEase);
+            pair.Key.DOLocalMove(pair.Value + r, _duration).SetEase(Ease.InOutExpo);
         }
     }
 
