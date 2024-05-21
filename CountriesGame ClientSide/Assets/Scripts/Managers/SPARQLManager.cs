@@ -19,6 +19,7 @@ public class SPARQLManager : Imanager {
         if (command.Contains("#MostRecentValueQuery") || command.Contains("#NestedPropertyValueQuery") || command.Contains("#PropertyValueQuery")) {
             foreach (SparqlResult r in results) {
                 string[] parts = r.Value("value").ToString().Split('^');
+
                 if (parts[2].Contains("#decimal"))
                     b.Append($"{System.Xml.XmlConvert.ToDecimal(parts[0])}");
                 else if (parts[2].Contains("#date"))
@@ -26,8 +27,11 @@ public class SPARQLManager : Imanager {
             }
         }
         else if (command.Contains("#PropertyLabelQuery")) {
-            foreach (SparqlResult r in results)
-                b.Append($"{r.Value("value")}");
+            foreach (SparqlResult r in results) {
+                b.Append($"{r.Value("label")}");
+                b.Append(';');
+                b.Append($"{r.Value("description")}");
+            }
         }
         else if (command.Contains("#InitQuery")) {
             foreach (SparqlResult r in results) {
@@ -36,7 +40,6 @@ public class SPARQLManager : Imanager {
             }
         }
 
-        Utils.Log(this, "ProcessQuery", b.ToString());
         GameManager.instance.connectionManager.SendMessage(AppConst.playerMessageQueryResult, index, b.ToString());
     }
 

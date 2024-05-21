@@ -155,7 +155,6 @@ public class ConnectionManager {
                 case AppConst.serverMessageStartGame:
                     GameManager.instance.viewManager.ShowView(1);
                     GameManager.instance.inputManager.Enable(InteractableTags.RulesButton);
-                    GameManager.instance.gameEnded = false;
                     break;
 
                 case AppConst.serverMessageJoinRoom:
@@ -177,7 +176,7 @@ public class ConnectionManager {
                     break;
 
                 case AppConst.serverMessageSelectTheme:
-                    GameManager.instance.boardManager.SetTheme(m.GetString(0));
+                    GameManager.instance.boardManager.SetTheme(m.GetString(0), m.GetString(1));
                     GameManager.instance.loading.Load(false);
                     break;
 
@@ -200,18 +199,14 @@ public class ConnectionManager {
                 case AppConst.serverMessageContestResult:
                     GameManager.instance.loading.Load(false);
 
-                    if (!GameManager.instance.gameEnded) {
-                        await GameManager.instance.messagePanel.Show("Contest !");
-                        await GameManager.instance.TaskWithDelay(0.5f);
-                    }
+                    await GameManager.instance.messagePanel.Show("Contest !");
+                    await GameManager.instance.TaskWithDelay(0.5f);
 
                     await GameManager.instance.boardManager.ShowResult(m.GetString(0));
                     await GameManager.instance.TaskWithDelay(0.5f);
 
-                    if (!GameManager.instance.gameEnded) {
-                        await GameManager.instance.messagePanel.Hide();
-                        await GameManager.instance.TaskWithDelay(0.5f);
-                    }
+                    await GameManager.instance.messagePanel.Hide();
+                    await GameManager.instance.TaskWithDelay(0.5f);
 
                     if (m.GetInt(1) == _id)
                         GameManager.instance.inputManager.Enable(InteractableTags.ActionButton, InteractableTags.RulesButton);
@@ -225,7 +220,7 @@ public class ConnectionManager {
                 case AppConst.serverMessageGameEnded:
                     bool IWon = m.GetInt(0) == _id;
                     await GameManager.instance.messagePanel.Show(IWon ? "You win !" : $"{GameManager.instance.playerList.GetPlayerName(m.GetInt(0))} win !");
-                    GameManager.instance.gameEnded = true;
+                    GameManager.instance.boardManager.OnGameEnded();
                     break;
 
                 case AppConst.serverMessageReturnToLobby:

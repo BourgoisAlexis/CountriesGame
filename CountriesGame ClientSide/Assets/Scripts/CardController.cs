@@ -29,12 +29,6 @@ public class CardController : InteractableItem {
     protected virtual void Awake() {
         _image = GetComponent<Image>();
         _tmproLabel = GetComponentInChildren<TextMeshProUGUI>();
-        _basicColor = GameManager.instance._colorPalette[0];
-        _translucentColor = _basicColor;
-        _transparentColor = _basicColor;
-
-        _translucentColor.a = 0.3f;
-        _transparentColor.a = 0f;
 
         _initialY = transform.localPosition.y;
 
@@ -47,6 +41,15 @@ public class CardController : InteractableItem {
     }
 
     public void Setup(Card card, Action onDragStart = null, Action onDragEnd = null) {
+        //Color
+        _basicColor = GameManager.instance._colorPalette[0];
+        _translucentColor = _basicColor;
+        _transparentColor = _basicColor;
+
+        _translucentColor.a = 0.3f;
+        _transparentColor.a = 0f;
+        //Color
+
         Card = card;
         _onDragStart = onDragStart;
         _onDragEnd = onDragEnd;
@@ -74,7 +77,10 @@ public class CardController : InteractableItem {
     }
 
     public override void PointerEnter() {
-        if (_dragged || transform == null)
+        if (_dragged)
+            return;
+
+        if (CheckForNullref())
             return;
 
         _image.DOColor(_basicColor, AppConst.animDuration).SetEase(AppConst.animEase);
@@ -87,7 +93,10 @@ public class CardController : InteractableItem {
     }
 
     public override void PointerExit() {
-        if (_dragged || transform == null)
+        if (_dragged)
+            return;
+
+        if (CheckForNullref())
             return;
 
         _image.DOColor(_translucentColor, AppConst.animDuration).SetEase(AppConst.animEase);
@@ -119,6 +128,15 @@ public class CardController : InteractableItem {
     public void DropCard() {
         _dragged = false;
         Card.HideShadow();
+    }
+
+    private bool CheckForNullref() {
+        if (transform == null || _image == null || _tmproLabel == null) {
+            Utils.Log(this, "CheckForNullRef", "one or more ref are missing");
+            return true;
+        }
+
+        return false;
     }
 
 

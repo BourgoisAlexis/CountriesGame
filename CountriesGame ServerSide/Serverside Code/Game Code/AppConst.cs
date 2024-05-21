@@ -36,7 +36,7 @@ public class AppConst {
     public string serverMessageProcessQuery = "servermessage_processquery";
     public string serverMessageContestResult = "servermessage_contestresult";
     public string serverMessageNextRound = "servermessage_nextround";
-    public string serverMessageGameEnded= "servermessage_gameended";
+    public string serverMessageGameEnded = "servermessage_gameended";
     public string serverMessageReturnToLobby = "servermessage_returntolobby";
 
     //Themes
@@ -56,9 +56,9 @@ public class AppConst {
         //"parity_percentage",//(female_population / population * 100)
         //"nominal_GDP",//(PIB)
         //"P1081",//human_development_index
-        //"suicide_rate",
-        //"unemployment_rate",
-        //"median_income",
+        new PropertyQuery("P3864", PropertyType.MostRecent, ""),//"suicide_rate (for 100 000 people and a year)",
+        new PropertyQuery("P1198", PropertyType.MostRecent, "%"),//"unemployment_rate",
+        //new PropertyQuery("P3529", PropertyType.Prop, "USD"),//"median_income",
         new PropertyQuery("P2046", PropertyType.Prop, "km²"),//"area",
         //"perimeter",
         //"number_of_household",

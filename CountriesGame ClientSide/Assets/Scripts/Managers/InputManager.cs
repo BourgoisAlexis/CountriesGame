@@ -90,8 +90,13 @@ public class InputManager : Imanager {
 
         List<InteractableItem> notHovered = _hoveredItems.FindAll(x => !currentHovered.Contains(x));
 
-        foreach (InteractableItem item in notHovered)
-            item.PointerExit();
+        if (notHovered != null)
+            foreach (InteractableItem item in notHovered) {
+                if (item == null)
+                    continue;
+
+                item.PointerExit();
+            }
 
         _hoveredItems = currentHovered;
     }

@@ -10,6 +10,7 @@ public class BoardManager : MonoBehaviour, Imanager {
     [SerializeField] private HandController _handController;
     [SerializeField] private CustomButton _actionButton;
     [SerializeField] private Transform _outOfBoundsPos;
+    [SerializeField] private InfosButton _infosButton;
     [SerializeField] private CustomButton _rulesButton;
     [SerializeField] private GameObject _rulesPanel;
 
@@ -27,8 +28,9 @@ public class BoardManager : MonoBehaviour, Imanager {
         _rulesPanel.SetActive(false);
     }
 
-    public void SetTheme(string theme) {
+    public void SetTheme(string theme, string description) {
         _tmproTheme.text = theme;
+        _infosButton.SetTheme(theme, description);
         _actionButton.Setup(Contest, _actionButtonColor, "Contest");
     }
 
@@ -48,13 +50,12 @@ public class BoardManager : MonoBehaviour, Imanager {
 
         await _dropZone.Reveal(results);
 
-        if (GameManager.instance.gameEnded) {
-            Action onClick = () => GameManager.instance.connectionManager.SendMessage(AppConst.playerMessageReturnToLobby);
-            _actionButton.Setup(onClick, _actionButtonColor, "Return to lobby");
-            return;
-        }
-
         _actionButton.Setup(NextRound, _actionButtonColor, "Next round");
+    }
+
+    public void OnGameEnded() {
+        Action onClick = () => GameManager.instance.connectionManager.SendMessage(AppConst.playerMessageReturnToLobby);
+        _actionButton.Setup(onClick, _actionButtonColor, "Return to lobby");
     }
 
     public void Contest() {
@@ -75,7 +76,7 @@ public class BoardManager : MonoBehaviour, Imanager {
 
     public void ShowRules() {
         _rulesPanel.SetActive(true);
-        _rulesPanel.GetComponent<RulesPanel>().Setup();
+        _rulesPanel.GetComponent<RulesPanel>().Setup(_rulesButton);
         GameManager.instance.inputManager.Enable(InteractableTags.RulesButton);
     }
 }

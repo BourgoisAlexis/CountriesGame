@@ -22,7 +22,13 @@ namespace CountriesGame {
 
     public enum RoomStates {
         Lobby,
-        GameStarted,
+
+        GameInProgress,
+
+        EmptyHand,
+        KeepCurrentPlayer,
+        GoForNextPlayer,
+
         GameEnded
     }
 
@@ -101,7 +107,7 @@ namespace CountriesGame {
             _countryIDs = new Dictionary<string, string>();
             _availableCards = new List<string>();
             _cardsOnBoard = new List<string>();
-            _roomState = RoomStates.GameStarted;
+            _roomState = RoomStates.GameInProgress;
 
             foreach (Player p in Players)
                 p.cardIDS = new List<string>();
@@ -134,8 +140,7 @@ namespace CountriesGame {
                             p.Send(_appConst.serverMessagePlayCard, onboardIndex, cardID, _countryIDs[cardID]);
 
                     if (player.cardIDS.Count <= 0) {
-                        _roomState = RoomStates.GameEnded;
-                        Broadcast(_appConst.serverMessageGameEnded, player.Id);
+                        _roomState = RoomStates.EmptyHand;
                         OnContest();
                     }
                     else
@@ -168,8 +173,10 @@ namespace CountriesGame {
 
                 case "playermessage_clearboard":
                     _clearedBoards++;
-                    if (_clearedBoards == Players.Count())
-                        BroadcastCurrentPlayer();
+                    if (_clearedBoards == Players.Count()) {
+                        NextPlayer();
+                        _roomState = RoomStates.GameInProgress;
+                    }
                     break;
 
                 case "playermessage_returntolobby":
@@ -201,7 +208,8 @@ namespace CountriesGame {
                 return;
             }
             if (index == _themeQueryIndex) {
-                Broadcast(_appConst.serverMessageSelectTheme, content.Replace("@en", ""));
+                string[] parts = content.Split(';');
+                Broadcast(_appConst.serverMessageSelectTheme, parts[0].Replace("@en", ""), parts[1].Replace("@en", ""));
 
                 int n = _random.Next(0, _availableCards.Count);
                 string id = _availableCards[n];
@@ -274,9 +282,12 @@ namespace CountriesGame {
         }
 
         private void NextPlayer() {
-            _currentPlayerIndex++;
-            if (_currentPlayerIndex > Players.Count() - 1)
-                _currentPlayerIndex = 0;
+            if (_roomState != RoomStates.KeepCurrentPlayer) {
+                _currentPlayerIndex++;
+                if (_currentPlayerIndex > Players.Count() - 1)
+                    _currentPlayerIndex = 0;
+            }
+
             BroadcastCurrentPlayer();
         }
 
@@ -332,7 +343,7 @@ namespace CountriesGame {
             List<ContestResult> results = new List<ContestResult>();
             var list = _contestQueriesResp.ToList();
             foreach (KeyValuePair<int, string> resp in _contestQueriesResp) {
-                if (decimal.TryParse(resp.Value.Replace(',','.'), NumberStyles.Any, CultureInfo.InvariantCulture, out decimal v)) {
+                if (decimal.TryParse(resp.Value.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture, out decimal v)) {
                     bool r = true;
                     foreach (KeyValuePair<int, string> pair in list.FindAll(x => x.Key < resp.Key)) {
                         if (decimal.TryParse(pair.Value.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture, out decimal vv))
@@ -366,13 +377,35 @@ namespace CountriesGame {
 
             Broadcast(_appConst.serverMessageContestResult, b.ToString(), GetPlayerAtIndex(_currentPlayerIndex).Id);
 
-            if (_roomState != RoomStates.GameStarted)
+            if (_roomState == RoomStates.Lobby || _roomState == RoomStates.GameEnded)
                 return;
 
-            if (results.Find(x => x.isValid == false) != null)
-                DrawCard(GetPreviousPlayer(), 2);
-            else
-                DrawCard(GetPlayerAtIndex(_currentPlayerIndex), 2);
+            bool validContest = results.Find(x => x.isValid == false) != null;
+
+            Console.WriteLine(_roomState);
+
+            if (_roomState == RoomStates.EmptyHand) {
+                if (validContest) {
+                    _roomState = RoomStates.GoForNextPlayer;
+                    DrawCard(GetPlayerAtIndex(_currentPlayerIndex), 2);
+                }
+                else {
+                    _roomState = RoomStates.GameEnded;
+                    Broadcast(_appConst.serverMessageGameEnded, GetPlayerAtIndex(_currentPlayerIndex).Id);
+                }
+            }
+            else {
+                if (validContest) {
+                    _roomState = RoomStates.KeepCurrentPlayer;
+                    DrawCard(GetPreviousPlayer(), 2);
+                }
+                else {
+                    _roomState = RoomStates.GoForNextPlayer;
+                    DrawCard(GetPlayerAtIndex(_currentPlayerIndex), 2);
+                }
+            }
+
+            Console.WriteLine(_roomState);
         }
 
         private Player GetNextPlayer() {

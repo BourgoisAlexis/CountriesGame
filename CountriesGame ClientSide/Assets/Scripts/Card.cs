@@ -1,5 +1,6 @@
 using DG.Tweening;
 using System;
+using System.Collections;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -8,6 +9,7 @@ using UnityEngine.UI;
 
 public class Card : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI _tmproID;
+    [SerializeField] private RawImage _rawImage;
     [SerializeField] private GameObject _visual;
 
     private Canvas _canvas;
@@ -24,6 +26,7 @@ public class Card : MonoBehaviour {
         _canvas.overrideSorting = true;
 
         _tmproID.text = _datas.label;
+        //StartCoroutine(DownloadImage());
     }
 
     public void UpdateSorting(int index) {
@@ -56,12 +59,14 @@ public class Card : MonoBehaviour {
         HideShadow();
     }
 
-    private async void DownloadImage(string MediaUrl) {
-        //UnityWebRequest request = UnityWebRequestTexture.GetTexture(MediaUrl);
-        //yield return request.SendWebRequest();
-        //if (request.isNetworkError || request.isHttpError)
-        //    Debug.Log(request.error);
-        //else
-        //    YourRawImage.texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+    private IEnumerator DownloadImage(string url = "") {
+        UnityWebRequest request = UnityWebRequestTexture.GetTexture("https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Flag_of_Nepal.svg/800px-Flag_of_Nepal.svg.png");
+        yield return request.SendWebRequest();
+        if (request.result == UnityWebRequest.Result.ConnectionError)
+            Debug.Log(request.error);
+        else
+            _rawImage.texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+
+        _rawImage.SizeToParent();
     }
 }

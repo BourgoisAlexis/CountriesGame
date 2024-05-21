@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour {
     private bool _setuped;
 
     public List<Color> _colorPalette = new List<Color>();
+    public Image _background;
     public ConnectionManager connectionManager;
     public SPARQLManager sparqlManager;
     public InputManager inputManager;
@@ -29,7 +30,6 @@ public class GameManager : MonoBehaviour {
 
     [Header("Debug")]
     public bool debugMode = true;
-    public bool gameEnded;
     #endregion
 
 
@@ -57,14 +57,23 @@ public class GameManager : MonoBehaviour {
         boardManager.Setup();
         messagePanel.Hide();
 
+        _background.material.SetVector("_Speed", new Vector4(GetRandomFloat(), GetRandomFloat(), 0, 0));
+
         _setuped = true;
+    }
+
+    private float GetRandomFloat() {
+        float result = UnityEngine.Random.Range(-0.5f, 0.5f);
+        while (Math.Abs(result) < 0.05)
+            result = GetRandomFloat();
+
+        return result;
     }
 
     private void Update() {
         if (!_setuped)
             return;
 
-        //connectionManager.ProcessMessages();
         inputManager.Update();
     }
 

@@ -1,8 +1,10 @@
 #PropertyLabelQuery
-SELECT ?value WHERE {
-  wd:propertyID rdfs:label ?value.
+SELECT ?label ?description WHERE {
+  wd:propertyID rdfs:label ?label.
+  wd:propertyID schema:description ?description.
 
-  FILTER(LANG(?value) = "en").
+  FILTER(LANG(?label) = "en").
+  FILTER(LANG(?description) = "en").
 
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
