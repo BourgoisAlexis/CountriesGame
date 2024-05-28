@@ -56,7 +56,7 @@ public class AppConst {
         //"parity_percentage",//(female_population / population * 100)
         //"nominal_GDP",//(PIB)
         //"P1081",//human_development_index
-        new PropertyQuery("P3864", PropertyType.MostRecent, ""),//"suicide_rate (for 100 000 people and a year)",
+        new PropertyQuery("P3864", PropertyType.MostRecent, "pcm"),//"suicide_rate (for 100 000 people and a year)",
         new PropertyQuery("P1198", PropertyType.MostRecent, "%"),//"unemployment_rate",
         //new PropertyQuery("P3529", PropertyType.Prop, "USD"),//"median_income",
         new PropertyQuery("P2046", PropertyType.Prop, "km²"),//"area",
