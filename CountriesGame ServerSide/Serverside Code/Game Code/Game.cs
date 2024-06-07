@@ -52,6 +52,7 @@ namespace CountriesGame {
         private string _currentTheme;
         private RoomStates _roomState;
         private int _currentPlayerIndex;
+        private int _currentPlayerID;
         private List<string> _availableCards;
         private List<string> _cardsOnBoard;
 
@@ -96,7 +97,21 @@ namespace CountriesGame {
 
         // This method is called when a player leaves the game
         public override void UserLeft(Player player) {
+            if (Players.Count() < 1)
+                return;
+
             Broadcast(_appConst.serverMessageLeaveRoom, player.Id);
+
+            if (player.Id == _currentPlayerID) {
+                Console.WriteLine($"left {_currentPlayerIndex}");
+
+                if (_currentPlayerIndex > Players.Count() - 1)
+                    _currentPlayerIndex = 0;
+
+                Console.WriteLine($"left {_currentPlayerIndex}");
+
+                BroadcastCurrentPlayer();
+            }
         }
         #endregion
 
@@ -269,6 +284,8 @@ namespace CountriesGame {
         }
 
         private void BroadcastCurrentPlayer() {
+            _currentPlayerID = GetPlayerAtIndex(_currentPlayerIndex).Id;
+
             StringBuilder b = new StringBuilder();
             foreach (Player p in Players) {
                 b.Append(p.Id);
@@ -278,7 +295,7 @@ namespace CountriesGame {
                     b.Append(';');
             }
 
-            Broadcast(_appConst.serverMessageCurrentPlayer, GetPlayerAtIndex(_currentPlayerIndex).Id, GetPreviousPlayer().Id, b.ToString());
+            Broadcast(_appConst.serverMessageCurrentPlayer, _currentPlayerID, GetPreviousPlayer().Id, b.ToString());
         }
 
         private void NextPlayer() {

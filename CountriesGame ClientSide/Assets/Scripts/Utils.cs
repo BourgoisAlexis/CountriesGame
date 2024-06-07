@@ -1,4 +1,5 @@
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using VDS.RDF.Query;
@@ -46,5 +47,14 @@ public static class Utils {
         }
         imageTransform.sizeDelta = new Vector2(w, h);
         return imageTransform.sizeDelta;
+    }
+
+    public static bool ActiveForTasks(this GameObject obj) {
+        bool active = obj != null && obj.activeInHierarchy;
+
+        if (!active)
+            Log(obj, "ActiveForTasks", $"an object is inactive or null ({obj.name})");
+
+        return active;
     }
 }

@@ -1659,7 +1659,7 @@ MonoBehaviour:
   prefabCard: {fileID: 2935794117759252015, guid: 9016139124b30664199d012f9e3cda93, type: 3}
   prefabCardController: {fileID: 2935794117759252015, guid: 0ebcb23ec8b6a544eb235b185127d3cb, type: 3}
   playerPrefab: {fileID: 3782933883036431647, guid: 2fb3dcd86a201eb4c98efda86321ae6e, type: 3}
-  debugMode: 1
+  debugMode: 0
 --- !u!4 &126465262
 Transform:
   m_ObjectHideFlags: 0

@@ -99,4 +99,8 @@ public class GameManager : MonoBehaviour {
         yield return new WaitForSecondsRealtime(duration);
         onEnd?.Invoke();
     }
+
+    private void OnApplicationQuit() {
+        connectionManager.LeaveRoom();
+    }
 }

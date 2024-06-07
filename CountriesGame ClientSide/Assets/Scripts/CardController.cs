@@ -77,34 +77,44 @@ public class CardController : InteractableItem {
     }
 
     public override void PointerEnter() {
-        if (_dragged)
-            return;
+        try {
+            if (_dragged)
+                return;
 
-        if (CheckForNullref())
-            return;
+            if (!gameObject.ActiveForTasks())
+                return;
 
-        _image.DOColor(_basicColor, AppConst.animDuration).SetEase(AppConst.animEase);
-        _tmproLabel.DOColor(_basicColor, AppConst.animDuration).SetEase(AppConst.animEase);
+            _image.DOColor(_basicColor, AppConst.animDuration).SetEase(AppConst.animEase);
+            _tmproLabel.DOColor(_basicColor, AppConst.animDuration).SetEase(AppConst.animEase);
 
-        transform.DOLocalMoveY(_initialY + 30, AppConst.animDuration).SetEase(AppConst.animEase);
-        baseSortingOrder = Card.GetComponent<Canvas>().sortingOrder;
-        Card.UpdateSorting(AppConst.sortHover);
-        _hovered = true;
+            transform.DOLocalMoveY(_initialY + 30, AppConst.animDuration).SetEase(AppConst.animEase);
+            baseSortingOrder = Card.GetComponent<Canvas>().sortingOrder;
+            Card.UpdateSorting(AppConst.sortHover);
+            _hovered = true;
+        }
+        catch (Exception e) {
+            Debug.LogError(e);
+        }
     }
 
     public override void PointerExit() {
-        if (_dragged)
-            return;
+        try {
+            if (_dragged)
+                return;
 
-        if (CheckForNullref())
-            return;
+            if (!gameObject.ActiveForTasks())
+                return;
 
-        _image.DOColor(_translucentColor, AppConst.animDuration).SetEase(AppConst.animEase);
-        _tmproLabel.DOColor(_transparentColor, AppConst.animDuration).SetEase(AppConst.animEase);
+            _image.DOColor(_translucentColor, AppConst.animDuration).SetEase(AppConst.animEase);
+            _tmproLabel.DOColor(_transparentColor, AppConst.animDuration).SetEase(AppConst.animEase);
 
-        transform.DOLocalMoveY(_initialY, AppConst.animDuration).SetEase(AppConst.animEase);
-        Card.UpdateSorting(baseSortingOrder);
-        _hovered = false;
+            transform.DOLocalMoveY(_initialY, AppConst.animDuration).SetEase(AppConst.animEase);
+            Card.UpdateSorting(baseSortingOrder);
+            _hovered = false;
+        }
+        catch (Exception e) {
+            Debug.LogError(e);
+        }
     }
 
     public override void PointerDown() {
@@ -128,15 +138,6 @@ public class CardController : InteractableItem {
     public void DropCard() {
         _dragged = false;
         Card.HideShadow();
-    }
-
-    private bool CheckForNullref() {
-        if (transform == null || _image == null || _tmproLabel == null) {
-            Utils.Log(this, "CheckForNullRef", "one or more ref are missing");
-            return true;
-        }
-
-        return false;
     }
 
 
